@@ -18,16 +18,15 @@
 -- Dependencies : IEEE.STD_LOGIC_1164, IEEE.NUMERIC_STD
 --------------------------------------------------------------------------------
 
-
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY uart_tx IS
     PORT (
+        clk         : IN STD_LOGIC;
         send        : IN STD_LOGIC;
         data        : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-        clk         : IN STD_LOGIC;
         ready       : OUT STD_LOGIC;
         uart_tx_bit : OUT STD_LOGIC
     );
