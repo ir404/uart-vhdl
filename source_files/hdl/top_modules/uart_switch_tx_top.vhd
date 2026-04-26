@@ -25,7 +25,7 @@ ENTITY uart_switch_tx_top IS
         sw          : IN STD_LOGIC_VECTOR (2 DOWNTO 0);     -- for SW 2,1,0
         btnC        : IN STD_LOGIC;                         -- centre push btn on the Basys3 board
         RsTx        : OUT STD_LOGIC;                        -- UART transmit pin connected to PC
-        LEDs        : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);     -- represents a 7-segment display on the board
+        LEDs        : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);     -- represents a 7-segment display on the board (low-active)
         digit_sel   : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)      -- 7-segment digit select
     );
 END uart_switch_tx_top;
