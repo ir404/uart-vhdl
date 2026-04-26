@@ -29,17 +29,23 @@
 *.svf
 
 # -------------------------------------------------------------------------
+# Vivado Project Files
+# -------------------------------------------------------------------------
+*.xpr
+
+# -------------------------------------------------------------------------
 # OS Specific Hidden Files
 # -------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
 ehthumbs.db
 
-
 # -------------------------------------------------------------------------
-# Explicit Overrides (Safety Net)
+# Explicit Overrides (Safety Net - NEVER Ignore These)
 # -------------------------------------------------------------------------
-# Source directory and Vivado project file are NEVER ignored
+# Ensure source code, constraints, and scripts are always tracked
 !source_files/
-!*.xpr
+!*.vhd
+!*.xdc
+!*.tcl
 !.gitignore
