@@ -35,7 +35,7 @@ The project is divided into core utility modules and top-level structural implem
 
 ---
 
-## 🛠️ Hardware Setup & Usage
+## Hardware Setup & Usage
 
 ### Prerequisites
 * **Board:** Digilent Basys 3 (Xilinx Artix-7)
