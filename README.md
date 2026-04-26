@@ -1,6 +1,6 @@
 # FPGA UART Interface & Hardware Controller
 
-A robust, from-scratch implementation of a Universal Asynchronous Receiver-Transmitter (UART) system in VHDL. Designed and tested on the Digilent Basys 3 FPGA (Artix-7), this project features reliable serial communication, physical hardware control, mechanical switch synchronisation, and 7-segment display multiplexing.
+An implementation of a Universal Asynchronous Receiver-Transmitter (UART) system in VHDL. Designed and tested on the Digilent Basys 3 FPGA (Artix-7), this project features reliable serial communication, physical hardware control, mechanical switch synchronisation, and 7-segment display multiplexing.
 
 ## Project Overview
 
