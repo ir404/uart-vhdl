@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- File Name    : uart_rx.vhd
 -- Author       : Imran
--- Date         : 17 April 2026
+-- Date         : 29 April 2026
 -- 
 -- Description  : Universal Asynchronous Receiver-Transmitter (UART) Receiver.
 --                
@@ -20,20 +20,22 @@ USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY uart_rx IS
+    GENERIC (
+        CLK_FREQ    : INTEGER := 100000000;                             -- Default 100 MHz
+        BAUD_RATE   : INTEGER := 9600;                                  -- Default 9600 bps
+        DATA_WIDTH  : INTEGER := 8                                      -- Default 8 bits
+    );
     PORT (
         clk         : IN STD_LOGIC;
-        uart_rx_bit : IN STD_LOGIC;
-        data        : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-        data_valid  : OUT STD_LOGIC;
-        frame_err   : OUT STD_LOGIC
+        uart_rx_bit : IN STD_LOGIC;                                     -- serial input data line connected to the transmitter
+        data        : OUT STD_LOGIC_VECTOR(DATA_WIDTH - 1 DOWNTO 0);    -- full data payload received 
+        data_valid  : OUT STD_LOGIC;                                    -- is HIGH for a clk cycle when valid data is ready to be read
+        frame_err   : OUT STD_LOGIC                                     -- is HIGH if framing error occues (like, missing stop bit)
     );
 END uart_rx;
 
 ARCHITECTURE behavioral OF uart_rx IS 
-    CONSTANT CLK_FREQ       : INTEGER := 100000000;             -- 100 MHz system clock
-    CONSTANT BAUD_RATE      : INTEGER := 9600;                  -- bits per second
-    CONSTANT BAUD_PERIOD    : INTEGER := CLK_FREQ / BAUD_RATE;  -- Cycles per bit
-    CONSTANT DATA_WIDTH     : INTEGER := 8;                     -- 8 data bits
+    CONSTANT BAUD_PERIOD    : INTEGER := CLK_FREQ / BAUD_RATE;          -- cycles per bit
 
     -- State definition
     TYPE state_type IS (IDLE, START_SYNC, READ_DATA, CHECK_STOP);
@@ -42,7 +44,7 @@ ARCHITECTURE behavioral OF uart_rx IS
     SIGNAL state_s          : state_type := IDLE;
     SIGNAL timer_s          : INTEGER RANGE 0 TO BAUD_PERIOD := 0;
     SIGNAL bit_ix_s         : INTEGER RANGE 0 TO DATA_WIDTH - 1 := 0;
-    SIGNAL data_reg_s       : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL data_reg_s       : STD_LOGIC_VECTOR(DATA_WIDTH - 1 DOWNTO 0) := (OTHERS => '0');
     SIGNAL frame_err_s      : STD_LOGIC := '0';
     SIGNAL data_valid_s     : STD_LOGIC := '0';
 
@@ -53,7 +55,7 @@ BEGIN
         VARIABLE state_v      : state_type;
         VARIABLE timer_v      : INTEGER RANGE 0 TO BAUD_PERIOD;
         VARIABLE bit_ix_v     : INTEGER RANGE 0 TO DATA_WIDTH - 1;
-        VARIABLE data_reg_v   : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        VARIABLE data_reg_v   : STD_LOGIC_VECTOR(DATA_WIDTH - 1 DOWNTO 0);
         VARIABLE frame_err_v  : STD_LOGIC;
         VARIABLE data_valid_v : STD_LOGIC;
     BEGIN

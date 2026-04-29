@@ -3,82 +3,75 @@ USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY uart_tx_tb IS
--- Testbenches have no ports
+    -- Testbenches do not have ports because they are self-contained environments
 END uart_tx_tb;
 
-ARCHITECTURE sim OF uart_tx_tb IS
+ARCHITECTURE behaviour OF uart_tx_tb IS
 
-    -- Component Declaration for the Unit Under Test (UUT)
-    COMPONENT uart_tx_module
-        PORT (
-            send        : IN STD_LOGIC;
-            data        : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-            clk         : IN STD_LOGIC;
-            ready       : OUT STD_LOGIC;
-            uart_tx_bit : OUT STD_LOGIC
-        );
-    END COMPONENT;
+    -- Testbench constants
+    CONSTANT CLK_PERIOD  : time := 10 ns;       -- 10 ns period represents a 100 MHz clock
+    CONSTANT C_BAUD_RATE : integer := 115200;   -- Sped up from 9600 to make the simulation finish much faster
 
-    -- Signals to connect to the UUT
-    SIGNAL clk_tb         : STD_LOGIC := '0';
-    SIGNAL send_tb        : STD_LOGIC := '0';
-    SIGNAL data_tb        : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
-    SIGNAL ready_tb       : STD_LOGIC;
-    SIGNAL uart_tx_bit_tb : STD_LOGIC;
-
-    -- Clock period definitions (100 MHz = 10ns)
-    CONSTANT clk_period : TIME := 10 ns;
+    -- UUT (Unit Under Test) Signals
+    SIGNAL clk_s         : STD_LOGIC := '0';
+    SIGNAL send_s        : STD_LOGIC := '0';
+    SIGNAL data_s        : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
+    SIGNAL ready_s       : STD_LOGIC;
+    SIGNAL uart_tx_bit_s : STD_LOGIC;
 
 BEGIN
 
     -- Instantiate the Unit Under Test (UUT)
-    uut: uart_tx_module
+    uut: ENTITY work.uart_tx
+        GENERIC MAP (
+            CLK_FREQ   => 100000000,
+            BAUD_RATE  => C_BAUD_RATE,
+            DATA_WIDTH => 8
+        )
         PORT MAP (
-            send        => send_tb,
-            data        => data_tb,
-            clk         => clk_tb,
-            ready       => ready_tb,
-            uart_tx_bit => uart_tx_bit_tb
+            clk         => clk_s,
+            send        => send_s,
+            data        => data_s,
+            ready       => ready_s,
+            uart_tx_bit => uart_tx_bit_s
         );
 
     -- Clock generation process
     clk_process : PROCESS
     BEGIN
-        clk_tb <= '0';
-        WAIT FOR clk_period/2;
-        clk_tb <= '1';
-        WAIT FOR clk_period/2;
+        clk_s <= '0';
+        WAIT FOR CLK_PERIOD / 2;
+        clk_s <= '1';
+        WAIT FOR CLK_PERIOD / 2;
     END PROCESS;
 
-    -- Stimulus process
-    stim_proc: PROCESS
-    BEGIN		
-        -- Initial Wait
+    -- Stimulus process to test the module's responses
+    stim_process: PROCESS
+    BEGIN
+        -- 1. Initialise and wait for the system to settle
         WAIT FOR 100 ns;
 
-        -- Test Case 1: Send character 'A' (Binary: 01000001, Hex: 0x41)
-        WAIT UNTIL ready_tb = '1'; -- Ensure the module is IDLE
-        data_tb <= "01000001";
-        send_tb <= '1';
-        WAIT FOR clk_period;       -- Hold send for one clock cycle
-        send_tb <= '0';
+        -- 2. Transmit the first character: 'A' (ASCII 0x41 / "01000001")
+        data_s <= x"41";
+        send_s <= '1';
+        WAIT FOR CLK_PERIOD;    -- Pulse the send signal for exactly one clock cycle
+        send_s <= '0';
 
-        -- Wait for the transmission to finish (10 bits * 104us each)
-        -- We wait until 'ready' goes high again
-        WAIT UNTIL ready_tb = '1';
-        WAIT FOR 200 us;           -- Small gap between transmissions
+        -- 3. Wait for the transmission to finish
+        -- The ready signal drops low during transmission, then returns high when idle
+        WAIT UNTIL ready_s = '1';
+        WAIT FOR 1 us;          -- Provide a brief buffer before the next transmission
 
-        -- Test Case 2: Send character 'B' (Binary: 01000010, Hex: 0x42)
-        data_tb <= "01000010";
-        send_tb <= '1';
-        WAIT FOR clk_period;
-        send_tb <= '0';
+        -- 4. Transmit the second character: 'Z' (ASCII 0x5A / "01011010")
+        data_s <= x"5A";
+        send_s <= '1';
+        WAIT FOR CLK_PERIOD;
+        send_s <= '0';
 
-        WAIT UNTIL ready_tb = '1';
+        WAIT UNTIL ready_s = '1';
         
-        -- End Simulation
-        REPORT "Simulation Finished Successfully";
+        -- End the simulation permanently
         WAIT;
     END PROCESS;
 
-END sim;
+END behaviour;

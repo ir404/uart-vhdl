@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- File Name    : uart_tx.vhd
 -- Author       : Imran
--- Date         : 16 April 2026
+-- Date         : 29 April 2026
 -- 
 -- Description  : Universal Asynchronous Receiver-Transmitter (UART) Transmitter.
 --                Transmits 8-bit data packets serially over a single line using 
@@ -23,20 +23,23 @@ USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY uart_tx IS
+    GENERIC (
+        CLK_FREQ    : INTEGER := 100000000;                         -- Default 100 MHz
+        BAUD_RATE   : INTEGER := 9600;                              -- Default 9600 bps
+        DATA_WIDTH  : INTEGER := 8                                  -- Default 8 bits
+    );
     PORT (
         clk         : IN STD_LOGIC;
-        send        : IN STD_LOGIC;
-        data        : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-        ready       : OUT STD_LOGIC;
-        uart_tx_bit : OUT STD_LOGIC
+        send        : IN STD_LOGIC;                                 -- trigger to start transmission
+        data        : IN STD_LOGIC_VECTOR(DATA_WIDTH -1 DOWNTO 0);  -- payload to be transmitted
+        ready       : OUT STD_LOGIC;                                -- is HIGH when IDLE and ready to accept new data
+        uart_tx_bit : OUT STD_LOGIC                                 -- serial output data line connected to the receiver
     );
 END uart_tx;
 
 ARCHITECTURE behavioral OF uart_tx IS
-    CONSTANT CLK_FREQ       : INTEGER := 100000000;             -- 100 MHz system clock
-    CONSTANT BAUD_RATE      : INTEGER := 9600;                  -- bits per second
-    CONSTANT BAUD_PERIOD    : INTEGER := CLK_FREQ / BAUD_RATE;  -- Cycles per bit
-    CONSTANT PACKET_WIDTH   : INTEGER := 10;                    -- Start bit, 8 data bits, stop bit
+    CONSTANT BAUD_PERIOD    : INTEGER := CLK_FREQ / BAUD_RATE;      -- Cycles per bit
+    CONSTANT PACKET_WIDTH   : INTEGER := DATA_WIDTH + 2;
     
     -- State machine definitions
     TYPE state_type IS (IDLE, LOAD_BIT, SEND_BIT);
@@ -44,15 +47,15 @@ ARCHITECTURE behavioral OF uart_tx IS
     -- Internal Signals
     SIGNAL state_s          : state_type := IDLE;
     SIGNAL timer_s          : INTEGER RANGE 0 TO BAUD_PERIOD := 0;
-    SIGNAL packet_s         : STD_LOGIC_VECTOR(9 DOWNTO 0) := (OTHERS => '1'); 
-    SIGNAL bit_ix_s         : INTEGER RANGE 0 TO 10 := 0;
-    SIGNAL tx_reg_s         : STD_LOGIC := '1';                 -- By default, it's HIGH when IDLE
+    SIGNAL packet_s         : STD_LOGIC_VECTOR(PACKET_WIDTH - 1 DOWNTO 0) := (OTHERS => '1'); 
+    SIGNAL bit_ix_s         : INTEGER RANGE 0 TO PACKET_WIDTH - 1 := 0;
+    SIGNAL tx_reg_s         : STD_LOGIC := '1';                     -- By default, it's HIGH when IDLE
 
 BEGIN 
 
     PROCESS (clk)
         VARIABLE state_v    : state_type; 
-        VARIABLE bit_ix_v   : INTEGER RANGE 0 TO 10;
+        VARIABLE bit_ix_v   : INTEGER RANGE 0 TO PACKET_WIDTH - 1;
     BEGIN 
         IF rising_edge(clk) THEN
             state_v  := state_s;
